@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>PBK Model Explorer</title>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <!-- PBK data -->
+    <script src="data.js"></script>
+  
+   <script id='dataJson' src="dataTest.json"></script>
+
+    <!-- PBK custom js -->
+    <script src="script.js"></script>
+
+    <!-- synonym data -->
+    <!--
+      <script src="synonyms.js"></script>
+    -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Custom css -->
+    <link rel="stylesheet" href="style.css">
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body onload='init();'>
+
+<!-- Everything is in container div -->
+<div class="container">
+  <!-- Title Area -->
+  <div class="row pbpk-title-bar">
+    <h1>PBK Model Explorer</h1>
+  </div>
+  <!-- Side Bar Area -->
+  <div id="sidebar" class="row col-md-2">
+    <div class="list-group panel">
+      <a class="list-group-item strong text-center" style="background:rgb(91,155,213); color: white;" data-toggle="collapse">Filter By...</a>
+
+      <a href="#species" class="list-group-item list-group-item-success strong" style="background: #eee;" data-toggle="collapse" data-parent="#MainMenu"> Species </a>
+      <div class="collapse list-group-submenu" id="species">
+      </div>
+
+      <a href="#routes" class="list-group-item list-group-item-success strong" style="background: #eee;" data-toggle="collapse" data-parent="#MainMenu"> Routes </a>
+      <div class="collapse list-group-submenu" id="routes">
+      </div>
+
+      <a href="#genders" class="list-group-item list-group-item-success strong" style="background: #eee;" data-toggle="collapse" data-parent="#MainMenu"> Sex </a>
+      <div class="collapse list-group-submenu" id="genders">
+        <a class="list-group-item"><input type="checkbox" name = "genders_0" id="unspecified_anchor">  Unspecified</a>
+        <a class="list-group-item"><input type="checkbox" name = "genders_1" id="female_anchor">  Female</a>
+        <a class="list-group-item"><input type="checkbox" name = "genders_2" id="male_anchor">  Male</a>
+      </div> 
+
+      <a class="list-group-item strong text-center" style="background:rgb(91,155,213); color: white;" data-toggle="collapse">Then By...</a>
+
+      <a href="#stages" class="list-group-item list-group-item-success strong" style="background: #eee;" data-toggle="collapse" data-parent="#MainMenu"> Lifestages </a>
+      <div class="collapse list-group-submenu" id="stages">
+      </div>
+
+      <a href="#compartments" class="list-group-item list-group-item-success strong" style="background: #eee;" data-toggle="collapse" data-parent="#MainMenu"> Compartments</a>
+      <div class="collapse list-group-submenu" id="compartments">
+      </div>
+    </div>
+  </div>
+  <!-- Main Content Area -->
+  <div class="col-md-10">
+    <div>
+      <div id="top_stuff">
+        <h3>Search for Chemicals</h3>
+        <button onclick='searchName();' type="button">Name</button>
+        <button onclick='searchCas();' type="button">CAS Registry#</button>
+        <!--<button onclick='searchFormula();' type="button">Formula</button> -->
+        <input tyle="text" size=70 id="chem_input"> 
+        <button style="float:right" type="button" data-toggle="modal" data-target="#myModal">Create a Model</button>
+        <button style="float:right"  onclick="showFileSelector()" id="fileButton">Load Models</button>
+        <input id="file-input" type="file" onchange="fileInputChange()" name="name" style="display: none;" accept=".json" />
+        <button style="float:right" type="button" onclick = "saveData()">Export Rows</button>
+        <button style="float:right" type="button" onclick = "saveModels()">Export Models</button> 
+        <br/>
+        <input type="checkbox" id="exact_chem_only"/> Check here to return only an exact match
+      </div>
+      <table id="paging_table"><tbody><tr>
+        <td id="status-text">Showing rows 1 to 10 (973 total)</td>
+        <td onclick = 'firstPage();' class='pointer' style="float:left;">&lt;&lt;</td>
+        <td onclick = 'prevPage();' class='pointer' >&lt;</td>
+        <td id="page_num">Page: 1</td>
+        <td onclick = 'nextPage();' class='pointer'  style="float:left;">&gt;</td>
+        <td onclick = 'lastPage();' class='pointer' >&gt;&gt;</td>
+        <td>Rows per page:
+          <select onchange='fixPageNum();' id="num_per_row">
+            <option>5</option>
+            <option selected>10</option>
+            <option>20</option>
+            <option>50</option>
+          <select>
+        </td>
+      </tr>
+    </tbody></table>
+    <table>
+      <thead id="chem_table_header">
+        <tr>
+          <th id="headCol1">Chemical</th>
+          <th id="model_refs">Models<br>Refs</th>
+          <th>Species</th>
+          <th>Route(s)</th>
+          <th>Sex(es)</th>
+          <th>Life<br>Stage(s)</th>
+          <th>Compartment(s)</th>
+        </tr>
+        <tr id="filterRow"/>
+      </thead>
+      <tbody id="chem_table_body"/>
+    </table>
+  </div>
+  
+ <!-- Modal -->
+ <div class="modal fade formwizardpopup" id="myModal" role="dialog">
+    <div class="modal-dialog">    
+      <!-- Modal content-->
+      <div class="modal-content banner">
+        <div class="modal-body">         
+          <button type="button" class="close" onclick="closeButtonClicked()" data-dismiss="modal">&times;</button>
+          <div class="form_wizard" id="myWizard">
+            <div class="navbar hidden">
+              <div class="navbar-inner">
+                <ul class="nav nav-pills nav-wizard">
+                  <li class="active">
+                    <a class="hidden-xs" href="#step1" data-toggle="tab" data-step="1"></a>
+                    <a class="visible-xs" href="#step1" data-toggle="tab" data-step="1">Main</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step2" data-toggle="tab" data-step="2"></a>
+                    <a class="visible-xs" href="#step2" data-toggle="tab" data-step="2">Chem</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step3" data-toggle="tab" data-step="3"></a>
+                    <a class="visible-xs" href="#step3" data-toggle="tab" data-step="3">Chem new</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step4" data-toggle="tab" data-step="4"></a>
+                    <a class="visible-xs" href="#step4" data-toggle="tab" data-step="4">Chem exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step5" data-toggle="tab" data-step="5"></a>
+                    <a class="visible-xs" href="#step5" data-toggle="tab" data-step="5">Chem plus</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step6" data-toggle="tab" data-step="6"></a>
+                    <a class="visible-xs" href="#step6" data-toggle="tab" data-step="6">Pop</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+		          <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step7" data-toggle="tab" data-step="7"></a>
+                    <a class="visible-xs" href="#step7" data-toggle="tab" data-step="7">Pop exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step8" data-toggle="tab" data-step="8"></a>
+                    <a class="visible-xs" href="#step8" data-toggle="tab" data-step="8">Pop species</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step9" data-toggle="tab" data-step="9"></a>
+                    <a class="visible-xs" href="#step9" data-toggle="tab" data-step="9">Pop new species</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step10" data-toggle="tab" data-step="10"></a>
+                    <a class="visible-xs" href="#step10" data-toggle="tab" data-step="10">Pop exist species</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step11" data-toggle="tab" data-step="11"></a>
+                    <a class="visible-xs" href="#step11" data-toggle="tab" data-step="11">Pop gender</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step12" data-toggle="tab" data-step="12"></a>
+                    <a class="visible-xs" href="#step12" data-toggle="tab" data-step="12">Pop new gender</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step13" data-toggle="tab" data-step="13"></a>
+                    <a class="visible-xs" href="#step13" data-toggle="tab" data-step="13">Pop exist gender</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step14" data-toggle="tab" data-step="14"></a>
+                    <a class="visible-xs" href="#step14" data-toggle="tab" data-step="14">Pop stage</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step15" data-toggle="tab" data-step="15"></a>
+                    <a class="visible-xs" href="#step15" data-toggle="tab" data-step="15">Pop new stage</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step16" data-toggle="tab" data-step="16"></a>
+                    <a class="visible-xs" href="#step16" data-toggle="tab" data-step="16">Pop exist stage</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step17" data-toggle="tab" data-step="17"></a>
+                    <a class="visible-xs" href="#step17" data-toggle="tab" data-step="17">Route</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step18" data-toggle="tab" data-step="18"></a>
+                    <a class="visible-xs" href="#step18" data-toggle="tab" data-step="18">Route new</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step19" data-toggle="tab" data-step="19"></a>
+                    <a class="visible-xs" href="#step19" data-toggle="tab" data-step="19">Route exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step20" data-toggle="tab" data-step="20"></a>
+                    <a class="visible-xs" href="#step20" data-toggle="tab" data-step="20">Ref</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step21" data-toggle="tab" data-step="21"></a>
+                    <a class="visible-xs" href="#step21" data-toggle="tab" data-step="21">Ref new</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step22" data-toggle="tab" data-step="22"></a>
+                    <a class="visible-xs" href="#step22" data-toggle="tab" data-step="22">Ref exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step23" data-toggle="tab" data-step="23"></a>
+                    <a class="visible-xs" href="#step23" data-toggle="tab" data-step="23">Compart</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step24" data-toggle="tab" data-step="24"></a>
+                    <a class="visible-xs" href="#step24" data-toggle="tab" data-step="24">Compart new</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step25" data-toggle="tab" data-step="25"></a>
+                    <a class="visible-xs" href="#step25" data-toggle="tab" data-step="25">Compart exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step26" data-toggle="tab" data-step="26"></a>
+                    <a class="visible-xs" href="#step26" data-toggle="tab" data-step="26">Equat</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step27" data-toggle="tab" data-step="27"></a>
+                    <a class="visible-xs" href="#step27" data-toggle="tab" data-step="27">Equat new</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step28" data-toggle="tab" data-step="28"></a>
+                    <a class="visible-xs" href="#step28" data-toggle="tab" data-step="28">Equat exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step29" data-toggle="tab" data-step="29"></a>
+                    <a class="visible-xs" href="#step29" data-toggle="tab" data-step="29">Soft</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step30" data-toggle="tab" data-step="30"></a>
+                    <a class="visible-xs" href="#step30" data-toggle="tab" data-step="30">Soft new</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                  <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step31" data-toggle="tab" data-step="31"></a>
+                    <a class="visible-xs" href="#step31" data-toggle="tab" data-step="31">Soft exist</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+	              <li class="disabled">
+                    <div class="nav-wedge"></div>
+                    <a class="hidden-xs" href="#step32" data-toggle="tab" data-step="32"></a>
+                    <a class="visible-xs" href="#step32" data-toggle="tab" data-step="32">Notes</a>
+                    <div class="nav-arrow"></div>
+                  </li>
+                </ul>
+              </div> <!--navbar-inner-->
+            </div>  <!--navbar-hidden-->    
+            
+		<div class="tab-content">
+	      <div class="tab-pane fade in active" id="step1">
+                <div class="data_blk">
+                  <h3>Add a new model</h3>
+                </div>                                   
+                <div class="row">
+                  <div class="col-sm-6"></div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-default next" type="submit">Next &nbsp; <i class="a_left"></i></button>
+                  </div>                            
+                </div>                         
+              </div>
+              
+	      <div class="tab-pane fade in" id="step2">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing chemical or add a new chemical?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step2ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step2NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+
+	      <div class="tab-pane fade" id="step3">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new chemical.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required </h6>
+		  <input type="text" id="nameText" name="name" placeholder="Name" autocomplete="off" class="form-control">
+	        </div>
+		<div class="zip_blk">
+                  <h6>Preferred </h6>
+		  <input type="text" id="chemDTXCIDText" name="dtxcid" placeholder="DTXCID" class="form-control">
+	        </div>
+                <div class="zip_blk">
+                  <input type="text" id="chemCASText" name="cas1" placeholder="CAS Number 1" class="form-control">
+                </div>
+                <div class="zip_blk">
+                  <h6>Additional</h6>
+                  <input type="text" id="chemRelationText" name="chemRel" placeholder="Chemical Relationship" class="form-control">
+                </div>
+		<div class="zip_blk">
+		  <input type="text" id="chemDTXSIDText" name="dtxsid" placeholder="DTXSID" class="form-control">
+	        </div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+
+              <div class="tab-pane fade" id="step4">
+                <div class="data_blk">
+                  <h3>Select an existing chemical</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="chemicalSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>
+			  
+              <div class="tab-pane fade" id="step5">
+	        <div class="data_blk">
+		  <h3>Please enter chem plus information for the model </h3>
+		</div>
+		<div class="zip_blk">
+                   <h6>Additional</h6>
+		  <input type="text" id="chemPlusText" name="chemPlus" placeholder="Chem Plus" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+		  
+		<div class="tab-pane fade in" id="step6">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing population or add a new population?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step6ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step6NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+			  
+	      <div class="tab-pane fade" id="step7">
+                <div class="data_blk">
+                  <h3>Select an existing population</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="populationSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>
+			  
+	      <div class="tab-pane fade in" id="step8">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing species or add a new species for the population?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step8ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step8NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+			  
+              <div class="tab-pane fade" id="step9">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new species.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required</h6>
+		  <input type="text" id="specNameText" name="specName" placeholder="Species Name" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+			  
+	      <div class="tab-pane fade" id="step10">
+                <div class="data_blk">
+                  <h3>Select an existing species</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="speciesSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>
+			  
+ 	      <div class="tab-pane fade in" id="step11">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing gender or add a new gender for the population?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step11ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step11NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+			  
+	      <div class="tab-pane fade" id="step12">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new gender.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required</h6>
+		  <input type="text" id="genderText" name="gender" placeholder="Gender" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+		  
+	      <div class="tab-pane fade" id="step13">
+                <div class="data_blk">
+                  <h3>Select an existing gender</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="genderSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>
+			  
+	      <div class="tab-pane fade in" id="step14">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing lifestage or add a new lifestage for the population?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step14ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step14NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+			  
+	      <div class="tab-pane fade" id="step15">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new lifestage.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required</h6>
+		  <input type="text" id="stageText" name="stage" placeholder="Lifestage" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+		  
+	      <div class="tab-pane fade" id="step16">
+                <div class="data_blk">
+                  <h3>Select an existing lifestage</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="stageSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>		
+			  
+	      <div class="tab-pane fade in" id="step17">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing route or add a new route?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step17ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step17NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+			  
+	      <div class="tab-pane fade" id="step18">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new route.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required</h6>
+		  <input type="text" id="routeText" name="route" placeholder="Route" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+		  
+	      <div class="tab-pane fade" id="step19">
+                <div class="data_blk">
+                  <h3>Select an existing route</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="routeSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>		
+			  
+              <div class="tab-pane fade in" id="step20">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing reference or add a new reference?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step20ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step20NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+			  
+	      <div class="tab-pane fade" id="step21">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new reference.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required</h6>
+		  <input type="text" id="refAutText" name="author" placeholder="Author" class="form-control">
+		</div>
+		<div class="zip_blk">
+                  <h6>Preferred</h6>
+		  <input type="text" id="refYearText" name="year" placeholder="Year" class="form-control">
+		</div>
+		<div class="zip_blk">
+		  <input type="text" id="refJourText" name="journal" placeholder="Journal" class="form-control">
+		</div>
+		<div class="zip_blk">
+		  <input type="text" id="refVolText" name="volume" placeholder="Volume" class="form-control">
+		</div>
+		<div class="zip_blk">
+		  <input type="text" id="refPageText" name="pages" placeholder="Pages" class="form-control">
+		</div>
+		<div class="zip_blk">
+		  <input type="text" id="refPubMedText" name="pubmed id" placeholder="PubMed ID" class="form-control">
+		</div>
+		<div class="zip_blk">
+		  <input type="text" id="refDOIText" name="doi" placeholder="DOI" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>			
+	
+	      <div class="tab-pane fade" id="step22">
+                <div class="data_blk">
+                  <h3>Select an existing reference</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="referenceSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>		
+				
+	      <div class="tab-pane fade in" id="step23">
+                <div class="data_blk">
+                  <h3>Would you like to use a single existing compartment or add multiple compartments?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step23ExistingRadioButton">Single Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step23NewRadioButton">Multiple</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>
+				
+	      <div class="tab-pane fade" id="step24">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new compartment.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>*Required</h6>
+		  <input type="text" id="compartText" name="compart" placeholder="Compartment (comma delimited for multiple)" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>
+		  
+	      <div class="tab-pane fade" id="step25">
+                <div class="data_blk">
+                  <h3>Select an existing compartment</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="compartmentSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>	
+
+	      <div class="tab-pane fade in" id="step26">
+                <div class="data_blk">
+                  <h3>Does the model contain an equation?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step26ExistingRadioButton">Yes</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step26NewRadioButton">No</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>			
+
+              <div class="tab-pane fade" id="step27">
+	        <div class="data_blk">
+		  <h3>Equation not available. Click next to skip.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>Preferred</h6>
+		  <input type="text" id="equatText" name="equation" placeholder="Not available" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>		
+		  
+	      <div class="tab-pane fade" id="step28">
+                <div class="data_blk">
+                  <h3>Select equation location.</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="equationSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>	
+
+	      <div class="tab-pane fade in" id="step29">
+                <div class="data_blk">
+                  <h3>Would you like to use an existing software or add a new software?</h3>
+                </div>                   
+                <div class="form_blk">
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step29ExistingRadioButton">Existing</label>
+                  </div>
+                  <div class="radio">
+                    <label><input type="radio" name="optradio" id="step29NewRadioButton">New</label>
+                  </div>  
+                </div>                    
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>                           
+              </div>			
+			  
+	      <div class="tab-pane fade" id="step30">
+	        <div class="data_blk">
+		  <h3>Please enter in the following information for a new software.  </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>Preferred</h6>
+		  <input type="text" id="softText" name="software" placeholder="Software" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+		  </div>
+                </div>
+	      </div>		
+		  
+	      <div class="tab-pane fade" id="step31">
+                <div class="data_blk">
+                  <h3>Select an existing software</h3>
+                </div>                   
+                <div class="form-group">
+                  <select id="softwareSelection" class="combobox">    
+		    <option value="" ></option>
+		  </select>
+		</div>          
+                <div class="row">
+                  <div class="col-sm-6">
+                    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>                            
+                  </div>
+                  <div class="col-sm-6 text-right">
+                    <button class="btn btn-primary btn-lg  next" type="submit">Next</button>
+                  </div>                            
+                </div>      
+              </div>	
+			  
+	      <div class="tab-pane fade" id="step32">
+	        <div class="data_blk">
+		  <h3>Please enter notes for the model </h3>
+		</div>
+		<div class="zip_blk">
+                  <h6>Additional</h6>
+		  <input type="text" id="notesText" name="notes" placeholder="Notes" class="form-control">
+		</div>
+		<div class="row">
+		  <div class="col-sm-3">
+		    <button class="btn btn-default back" type="button"><i class="a_right"></i> &nbsp; Back </button>
+		  </div>
+		  <div class="col-sm-6"></div>
+		  <div class="col-sm-3 text-right">
+		    <button class="btn btn-primary btn-lg  done" type="submit">Done</button>
+		  </div>
+                </div>
+	      </div>
+		  
+            </div> <!--tab-content-->
+          </div> <!--form_wizard-->
+          <div id="push"></div>
+        </div> <!--modal-body-->
+      </div> <!--modal-content-banner-->
+    </div> <!--modal-dialog-->
+  </div> <!--modal fade formwizardpopup-->
+
+
+</div>
+</div>
+</body>
+</html>
+
+
