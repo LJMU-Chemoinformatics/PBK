@@ -1,0 +1,15 @@
+var equation = new Array();
+equation[1] = "Combination of partial equations in paper and software files on request from paper author";
+equation[2] = "Equations in combination of primary and secondary references";
+equation[3] = "Equations in secondary references";
+equation[4] = "Equations on request from paper author";
+equation[5] = "Full equations in paper";
+equation[6] = "In supplementary material";
+equation[7] = "Model code available on BioModels database";
+equation[8] = "Model code available on GitHub";
+equation[9] = "Model code in appendix";
+equation[10] = "Model code in secondary references";
+equation[11] = "Model code in supplementary material";
+equation[12] = "Not available";
+equation[13] = "Partial equations in paper";
+equation[14] = "Software files on request from paper author";
