@@ -1,1 +1,1 @@
-To use the PBK Model Explorer tool, please download all files to your local computer. Ensure that you use "extract" to access the files and store on your computer, then double click the file "index" to run the model explorer tool.
+To use the PBK Model Explorer tool, please download all files to your local computer. (To download all files, click on the small arrow on the right of the green "code" button). Ensure that you use "extract" to access the files and store on your computer, then double click the file "index" to run the model explorer tool.
